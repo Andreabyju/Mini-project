@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Canine & Feline Co.- Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Apply black text color to labels and inputs globally */
+       body, label, input, select, textarea, .text-black {
+            color: black !important;
+        }
+
+        .login-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                        url('/images/bg_3.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        /* Add a subtle shine effect to the form container */
+        .form-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(-100px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Ensure the text within the form is always black */
+        .form-container input,
+        .form-container select,
+        .form-container textarea {
+            color: black !important;
+        }
+
+        /* Make specific texts black */
+        .text-black, .forgot-password, .or-continue, .sign-in-text, .google-btn, .apple-btn, .not-member {
+            color: black !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+   
+    <!-- Login Section -->
+    <div class="login-background min-h-screen flex items-center justify-end py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-xl w-full form-container rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 sign-in-text">Login</h2>
+                <p class="mt-2 text-gray-600 sign-in-text">Please sign in to your account</p>
+            </div>
+            <form class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                    <input type="email" id="email" name="email" required 
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" name="password" required 
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember-me" name="remember-me" 
+                            class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                    </div>
+                    <a href="forgotpassword.html" class="text-sm text-gray-600 hover:text-gray-900 forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" 
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                    Sign In
+                </button>
+            </form>
+
+        
+
+            <p class="mt-6 text-center text-sm text-gray-600 not-member">
+                Not a member yet? 
+                <a href="registration.html" class="font-medium text-black hover:text-gray-800">Register now</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
