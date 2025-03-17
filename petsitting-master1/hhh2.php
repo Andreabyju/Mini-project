@@ -1,3 +1,8 @@
+<?php
+session_start();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -35,27 +40,30 @@
 				<span class="fa fa-bars"></span> Menu
 			</button>
 			<div class="collapse navbar-collapse" id="ftco-nav">
-				<ul class="navbar-nav ml-auto">
-					<li class="nav-item active"><a href="index.html" class="nav-link">Home</a></li>
-					<li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
-					<li class="nav-item"><a href="services.html" class="nav-link">Services</a></li>
-					<li class="nav-item">
-					<a href="food.php" class="nav-link text-center">Food Products</a></li>
-					<li class="nav-item"><a href="pricing.html" class="nav-link">Pricing</a></li>
+				<div class="navbar-nav ml-auto">
+					<div class="nav-item active"><a href="index.html" class="nav-link">Home</a></div>
+					<div class="nav-item"><a href="about.html" class="nav-link">About</a></div>
+					<div class="nav-item"><a href="services.html" class="nav-link">Services</a></div>
+					<div class="nav-item">
+					<a href="food.php" class="nav-link text-center">Food Products</a></div>
+					<div class="nav-item"><a href="pricing.html" class="nav-link">Pricing</a></div>
 					
-					<li class="nav-item ml-auto">
-						<a href="user_dashboard.php" class="nav-link">
-							<i class="fa-solid fa-user fa-2x mr-3"></i> 
-							<span class="user-name ml-2">
+					<div class="nav-item ml-auto">
+						<a href="user_dashboard.php" class="nav-link d-flex align-items-center">
+							<i class="fa-solid fa-user fa-2x mr-2"></i> 
+							<span class="user-name">
 								<?php 
-									if(isset($_SESSION['username'])) {
-										echo $_SESSION['username'];
+									if(isset($_SESSION['username']) && !empty($_SESSION['username'])) {
+										echo htmlspecialchars($_SESSION['username']);
+									} else {
+										echo 'Guest';
 									}
 								?>
 							</span>
 						</a>
-					</li>
-				</ul>
+					</div>
+					<div class="nav-item"><a href="hhh.php" class="nav-link">Log Out</a></div>
+				</div>
 			</div>
 		</div>
 	</nav>
@@ -133,7 +141,7 @@
               <div class="media-body">
                 <h3 class="heading">Pet Food</h3>
                 <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right.</p>
-                <a href="food.html" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
+                <a href="food.php" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
               </div>
             </div>    
           </div>
@@ -202,19 +210,7 @@
     
 
     <section class="ftco-section bg-light ftco-faqs">
-    	<div class="container">
-    		<div class="row">
-    			<div class="col-lg-6 order-md-last">
-    				<div class="img img-video d-flex align-self-stretch align-items-center justify-content-center justify-content-md-center mb-4 mb-sm-0" style="background-image:url(images/about.jpg);">
-    					<a href="https://vimeo.com/45830194" class="icon-video popup-vimeo d-flex justify-content-center align-items-center">
-    						<span class="fa fa-play"></span>
-    					</a>
-    				</div>
-    				<div class="d-flex mt-3">
-    					<div class="img img-2 mr-md-2" style="background-image:url(images/about-2.jpg);"></div>
-    					<div class="img img-2 ml-md-2" style="background-image:url(images/about-3.jpg);"></div>
-    				</div>
-    			</div>
+    	
 
     			
     

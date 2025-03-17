@@ -53,13 +53,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
             $stmt->execute(['email' => $email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo $user;
 
             if ($user) {
                 // Use password_verify instead of md5
                 if (password_verify($password, $user['password'])) {
                     // Update session variables to match table structure
                     $_SESSION['user_id'] = $user['user_id'];
-                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['username'] = $user['name'];
                     $_SESSION['email'] = $user['email'];
                     
                     // Handle remember me (store only email, never store passwords in cookies)

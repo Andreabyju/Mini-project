@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
-$username = "admin";
-$password = "1234";
+$username = "root";
+$password = "";
 
 try {
     // Create connection without selecting a database

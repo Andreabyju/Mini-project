@@ -1,3 +1,23 @@
+<?php
+session_start(); // Only one session_start() at the very beginning
+require_once "connect.php";
+
+// Fetch products from database and group by category
+try {
+    // Fetch cat food products
+    $catFoodStmt = $conn->prepare("SELECT * FROM products WHERE category = 'Cat Food'");
+    $catFoodStmt->execute();
+    $catFood = $catFoodStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch dog food products
+    $dogFoodStmt = $conn->prepare("SELECT * FROM products WHERE category = 'Dog Food'");
+    $dogFoodStmt->execute();
+    $dogFood = $dogFoodStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -15,6 +35,22 @@
     <link rel="stylesheet" href="css/jquery.timepicker.css">
     <link rel="stylesheet" href="css/flaticon.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .position-relative {
+            position: relative;
+        }
+        
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            padding: 3px 6px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: white;
+            font-size: 0.75rem;
+        }
+    </style>
   </head>
   <body>
     <!-- Navigation -->
@@ -36,8 +72,15 @@
             </li>
             <li class="nav-item"><a href="hhh2.php" class="nav-link"><i class="fa-solid fa-house fa-lg" style="color: white;"></i></a></li>
             <li class="nav-item">
-						<a href="#" class="nav-link">
-							<i class="fa-solid fa-cart-shopping fa-lg" style="color: white;"></i> 
+						<a href="cart/add_to_cart.php" class="nav-link cart-link">
+							<div class="cart-icon-container">
+								<i class="fa-solid fa-cart-shopping fa-lg" style="color: white;"></i>
+								<span id="cart-counter" class="cart-badge">
+									<?php 
+										echo isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : '0';
+									?>
+								</span>
+							</div>
 						</a>
 					</li>
           </ul>
@@ -45,60 +88,6 @@
       </div>
     </nav>
     <!-- END nav -->
-<?php
-session_start();
-
-// Sample product data - In a real application, this would come from a database
-$catFood = [
-   
-    
-];
-
-$dogFood = [
-    [
-        'id' => 8,
-        'name' => 'Large Breed Dog Food',
-        'description' => 'Complete nutrition for large breed adult dogs with glucosamine for joint health.',
-        'price' => 39.99,
-        'image' => 'images/dog-food-1.jpg'
-    ],
-    [
-        'id' => 9,
-        'name' => 'Puppy Growth Formula',
-        'description' => 'Rich in DHA for brain development and proteins for growing puppies.',
-        'price' => 32.99,
-        'image' => 'images/dog-food-2.jpg'
-    ],
-    [
-        'id' => 10,
-        'name' => 'Grain-Free Dog Food',
-        'description' => 'Premium grain-free formula with sweet potato and real meat.',
-        'price' => 44.99,
-        'image' => 'images/dog-food-3.jpg'
-    ],
-    [
-        'id' => 11,
-        'name' => 'Large Breed Dog Food',
-        'description' => 'Complete nutrition for large breed adult dogs with glucosamine for joint health.',
-        'price' => 39.99,
-        'image' => 'images/dog-food-1.jpg'
-    ],
-    [
-        'id' => 12,
-        'name' => 'Large Breed Dog Food',
-        'description' => 'Complete nutrition for large breed adult dogs with glucosamine for joint health.',
-        'price' => 39.99,
-        'image' => 'images/dog-food-1.jpg'
-    ],
-    [
-        'id' => 13,
-        'name' => 'Large Breed Dog Food',
-        'description' => 'Complete nutrition for large breed adult dogs with glucosamine for joint health.',
-        'price' => 39.99,
-        'image' => 'images/dog-food-1.jpg'
-    ]
-];
-?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -162,6 +151,33 @@ $dogFood = [
         .add-to-cart-btn:hover {
             background-color: #009945;
         }
+
+        .cart-icon-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;          /* Adjusted to sit higher */
+            right: -8px;        /* Adjusted to sit more to the right */
+            background-color: #ff0000;
+            color: white;
+            font-size: 11px;    /* Slightly smaller font */
+            width: 18px;        /* Fixed width */
+            height: 18px;       /* Fixed height - same as width for perfect circle */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .cart-link {
+            padding: 0.5rem 1rem;
+            position: relative;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -172,55 +188,72 @@ $dogFood = [
     <!-- Cat Food Section -->
     <h2 class="category-title">Cat Food Products</h2>
     <div class="row mb-5">
-        <?php foreach($catFood as $product): ?>
-            <div class="col-md-4 mb-4">
-                <div class="product-card">
-                    <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="product-image w-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo $product['name']; ?></h5>
-                        <p class="card-text"><?php echo $product['description']; ?></p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
-                            <button class="btn btn-primary add-to-cart-btn" 
-                                    onclick="addToCart(<?php echo $product['id']; ?>)">
-                                <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
-                            </button>
+        <?php if (!empty($catFood)): ?>
+            <?php foreach($catFood as $product): ?>
+                <div class="col-md-4 mb-4">
+                    <div class="product-card">
+                        <img src="uploads/<?php echo htmlspecialchars($product['image_url']); ?>" 
+                             alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                             class="product-image w-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                            <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
+                                <button class="btn btn-primary add-to-cart-btn" 
+                                        onclick="addToCart(<?php echo $product['id']; ?>)">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-12">
+                <p>No cat food products available at the moment.</p>
             </div>
-        <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <!-- Dog Food Section -->
     <h2 class="category-title">Dog Food Products</h2>
     <div class="row">
-        <?php foreach($dogFood as $product): ?>
-            <div class="col-md-4 mb-4">
-                <div class="product-card">
-                    <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="product-image w-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo $product['name']; ?></h5>
-                        <p class="card-text"><?php echo $product['description']; ?></p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
-                            <button class="btn btn-primary add-to-cart-btn" 
-                                    onclick="addToCart(<?php echo $product['id']; ?>)">
-                                <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
-                            </button>
+        <?php if (!empty($dogFood)): ?>
+            <?php foreach($dogFood as $product): ?>
+                <div class="col-md-4 mb-4">
+                    <div class="product-card">
+                        <img src="uploads/<?php echo htmlspecialchars($product['image_url']); ?>" 
+                             alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                             class="product-image w-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                            <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
+                                <button class="btn btn-primary add-to-cart-btn" 
+                                        onclick="addToCart(<?php echo $product['id']; ?>)">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-12">
+                <p>No dog food products available at the moment.</p>
             </div>
-        <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>
 
 <!-- Add to Cart JavaScript -->
 <script>
 function addToCart(productId) {
-    // Here you would typically make an AJAX call to add the item to the cart
-    // For example:
+    // Log the productId to check if it's being passed correctly
+    console.log('Adding product ID:', productId);
+    
     fetch('add_to_cart.php', {
         method: 'POST',
         headers: {
@@ -231,11 +264,21 @@ function addToCart(productId) {
             quantity: 1
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Response:', data); // Log the response
         if(data.success) {
-            alert('Product added to cart!');
-            // Update cart icon/counter if needed
+            // Update cart counter
+            const cartCounter = document.getElementById('cart-counter');
+            cartCounter.textContent = data.cartTotal;
+            alert('Product added to cart successfully!');
+        } else {
+            alert('Error: ' + data.message);
         }
     })
     .catch(error => {
@@ -244,6 +287,29 @@ function addToCart(productId) {
     });
 }
 </script>
+
+<!-- Add this CSS for the toast notifications -->
+<style>
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    min-width: 200px;
+    background-color: white;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+    z-index: 1050;
+}
+
+.toast-header {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.toast-body {
+    padding: 0.75rem;
+}
+</style>
 
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

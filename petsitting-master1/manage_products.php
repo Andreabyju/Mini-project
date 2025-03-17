@@ -40,9 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
             }
         }
         
+        // Debugging: Check if category is set and not empty
+        if (empty($productCategory)) {
+            throw new Exception("Product category is not set.");
+        }
+
         // Insert into database
-        // Change this section
-$stmt = $conn->prepare("INSERT INTO products (name,description,price, category, image) VALUES (:name, :price, :description, :category, :image)");
+        $stmt = $conn->prepare("INSERT INTO products (name, description, price, category, image_url) VALUES (:name, :description, :price, :category, :image)");
         $stmt->execute([
             'name' => $productName,
             'description' => $productDescription,
@@ -62,12 +66,11 @@ $stmt = $conn->prepare("INSERT INTO products (name,description,price, category, 
 }
 
 // Handle product deletion
-// Change this section
 if (isset($_GET['delete'])) {
     $productId = $_GET['delete'];
     try {
-        $stmt = $conn->prepare("DELETE FROM products WHERE product_id = :name");  // Changed from product_id to id
-        $stmt->execute(['name' => $productId]);
+        $stmt = $conn->prepare("DELETE FROM products WHERE id = :id");
+        $stmt->execute(['id' => $productId]);
         $success = "Product deleted successfully!";
     } catch (Exception $e) {
         $error = "Error deleting product: " . $e->getMessage();
@@ -208,7 +211,7 @@ $products = $conn->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
                                 <td class="px-6 py-4">
     <form action="" method="GET" style="display:inline;">
-        <input type="hidden" name="delete" value="<?php echo htmlspecialchars($product['product_id']); ?>">  <!-- Changed from product_id to id -->
+        <input type="hidden" name="delete" value="<?php echo htmlspecialchars($product['id']); ?>">
         <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
             Delete
         </button>

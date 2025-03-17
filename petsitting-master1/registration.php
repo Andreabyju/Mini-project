@@ -271,6 +271,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $(`#${elementId}`).hide();
             }
 
+            function validateField(fieldId, regex, errorId, errorMessage) {
+                const value = $(`#${fieldId}`).val().trim();
+                if (!value) {
+                    showError(errorId, `${fieldId.replace('_', ' ')} is required`);
+                    return false;
+                } else if (!regex.test(value)) {
+                    showError(errorId, errorMessage);
+                    return false;
+                } else {
+                    hideError(errorId);
+                    return true;
+                }
+            }
+
+            // Live validation for each field
+            $('#name').on('input', function() {
+                validateField('name', /^[A-Za-z\s]+$/, 'nameError', 'Name should only contain letters and spaces');
+            });
+
+            $('#email').on('input', function() {
+                validateField('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'emailError', 'Please enter a valid email address');
+            });
+
+            $('#phone').on('input', function() {
+                validateField('phone', /^[0-9]{10}$/, 'phoneError', 'Please enter a valid 10-digit phone number');
+            });
+
+            $('#address').on('input', function() {
+                const value = $(this).val().trim();
+                if (!value) {
+                    showError('addressError', 'Address is required');
+                } else {
+                    hideError('addressError');
+                }
+            });
+
+            $('#pincode').on('input', function() {
+                validateField('pincode', /^[0-9]{6}$/, 'pincodeError', 'Please enter a valid 6-digit pincode');
+            });
+
+            $('#pet_name').on('input', function() {
+                validateField('pet_name', /^[A-Za-z\s]+$/, 'petNameError', 'Pet name should only contain letters and spaces');
+            });
+
+            $('#pet_age').on('input', function() {
+                const petAge = $(this).val();
+                if (!petAge) {
+                    showError('petAgeError', 'Pet age is required');
+                } else if (petAge < 1 || petAge > 50) {
+                    showError('petAgeError', 'Pet age must be between 1 and 50');
+                } else {
+                    hideError('petAgeError');
+                }
+            });
+
+            $('input[name="pet_type"]').on('change', function() {
+                if (!$('input[name="pet_type"]:checked').val()) {
+                    showError('petTypeError', 'Please select a pet type');
+                } else {
+                    hideError('petTypeError');
+                }
+            });
+
+            $('#pet_breed').on('input', function() {
+                validateField('pet_breed', /^[A-Za-z\s]+$/, 'petBreedError', 'Pet breed should only contain letters and spaces');
+            });
+
+            $('#password').on('input', function() {
+                const password = $(this).val();
+                if (!password) {
+                    showError('passwordError', 'Password is required');
+                } else if (password.length < 8) {
+                    showError('passwordError', 'Password must be at least 8 characters long');
+                } else {
+                    hideError('passwordError');
+                }
+            });
+
             function validateForm() {
                 let isValid = true;
 

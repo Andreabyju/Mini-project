@@ -3,7 +3,7 @@ session_start();
 require_once "connect.php";
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['email'])) {
     header("Location: demo.php");
     exit();
 }
@@ -39,7 +39,7 @@ try {
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <a href="index.php" class="text-xl font-bold text-gray-800">The Canine & Feline Co.</a>
-                <a href="logout.php" class="text-red-600 hover:text-red-800">Logout</a>
+                <a href="hhh2.php" class="text-red-600 hover:text-red-800">Logout</a>
             </div>
         </div>
     </nav>
@@ -71,7 +71,7 @@ try {
                             }
                             ?>
                         </dd>
-                    </div>
+                        </div>
                     <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
