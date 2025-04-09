@@ -1,6 +1,10 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require_once "../connect.php";
+require_once "../functions/payment_functions.php";  // Make sure this file exists
 
 // Redirect if cart is empty
 if (empty($_SESSION['cart'])) {
@@ -145,31 +149,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     // If no errors, process order
     if (empty($errors)) {
         try {
-            // In a real application, you would:
-            // 1. Insert order into orders table
-            // 2. Insert order items into order_items table
-            // 3. Process payment
-            // 4. Send confirmation email
+            // Get the current user's ID from the session
+            $user_id = $_SESSION['user_id'];
             
-            // For now, just simulate order placement
-            $orderPlaced = true;
+            // Start transaction
+            $conn->beginTransaction();
             
-            // Clear cart after successful order
-            $_SESSION['cart'] = [];
+            // Insert into orders table
+            $stmt = $conn->prepare("INSERT INTO orders (user_id, total_amount, order_date, shipping_address, 
+                shipping_city, shipping_state, shipping_zip, status, payment_method) 
+                VALUES (?, ?, NOW(), ?, ?, ?, ?, 'pending', ?)");
+                
+            $stmt->execute([
+                $user_id,
+                $grandTotal,
+                $_POST['address'],
+                $_POST['city'],
+                $_POST['state'],
+                $_POST['zip'],
+                $_POST['payment_method']
+            ]);
+            
+            $order_id = $conn->lastInsertId();
+            
+            // Insert order items
+            $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) 
+                VALUES (?, ?, ?, ?)");
+                
+            foreach ($cartItems as $item) {
+                $stmt->execute([
+                    $order_id,
+                    $item['id'],
+                    $_SESSION['cart'][$item['id']],
+                    $item['price']
+                ]);
+            }
+            
+            // Commit transaction
+            $conn->commit();
             
             // Store order confirmation in session
             $_SESSION['order_confirmation'] = [
-                'order_id' => 'ORD-' . time(),
-                'total' => $total,
+                'order_id' => $order_id,
+                'total' => $grandTotal,
                 'date' => date('Y-m-d H:i:s'),
                 'name' => $_POST['first_name'] . ' ' . $_POST['last_name']
             ];
+            
+            // Clear cart after successful order
+            $_SESSION['cart'] = [];
             
             // Redirect to thank you page
             header('Location: order_confirmation.php');
             exit;
             
         } catch (Exception $e) {
+            // Rollback transaction on error
+            $conn->rollBack();
             $errors['general'] = 'An error occurred while processing your order: ' . $e->getMessage();
         }
     }
@@ -179,15 +215,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
 $tax = $total * 0.08;
 $grandTotal = $total + $tax;
 
-// In a real implementation, these would be in your config file 
-$razorpay_key_id = 'rzp_test_YourTestKeyHere'; // Replace with your actual test key
-$razorpay_key_secret = 'YourSecretKeyHere'; // Used only on server-side
-
-// Calculate order total in the smallest currency unit (paise for INR)
-// Razorpay expects amount in paise (1 INR = 100 paise)
-$razorpay_amount = $grandTotal * 100;
+// Razorpay Key ID
+$razorpay_key_id = 'rzp_test_CzoNYGf1d0sXyX'; // Your actual Razorpay Key ID
+$razorpay_amount = $grandTotal * 100; // Amount in paise
 $razorpay_currency = 'INR';
 $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
+
 ?>
 
 <!DOCTYPE html>
@@ -197,9 +230,15 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - The Canine & Feline Co.</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
+        /* Update the navbar background color */
+        .navbar {
+            background-color: #00bd56 !important; /* Using the same green color from your theme */
+        }
+        
         body {
             background-color: #f8f9fa;
         }
@@ -390,7 +429,7 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="../food.php">
                 <span class="mr-2">🐾</span>
@@ -493,8 +532,6 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
                             </div>
                         </div>
                         
-                        
-                        
                         <!-- Terms and Conditions -->
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
@@ -522,7 +559,7 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
                                             <div>
                                                 <h6 class="mb-0"><?php echo htmlspecialchars($item['name']); ?></h6>
                                                 <p class="text-muted mb-0">Qty: <?php echo $_SESSION['cart'][$item['id']]; ?></p>
-                                                <p class="mb-0">$<?php echo number_format($item['price'] * $_SESSION['cart'][$item['id']], 2); ?></p>
+                                                <p class="mb-0">₹<?php echo number_format($item['price'] * $_SESSION['cart'][$item['id']], 2); ?></p>
                                             </div>
                                         </div>
                                     </div>
@@ -532,7 +569,7 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
                             <div class="mt-4">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Subtotal:</span>
-                                    <span>$<?php echo number_format($total, 2); ?></span>
+                                    <span>₹<?php echo number_format($total, 2); ?></span>
                                 </div>
                                 
                                 <div class="d-flex justify-content-between mb-2">
@@ -542,21 +579,21 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
                                 
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Tax (8%):</span>
-                                    <span>$<?php echo number_format($tax, 2); ?></span>
+                                    <span>₹<?php echo number_format($tax, 2); ?></span>
                                 </div>
                                 
                                 <hr>
                                 
                                 <div class="d-flex justify-content-between mb-4">
                                     <strong>Total:</strong>
-                                    <strong>$<?php echo number_format($grandTotal, 2); ?></strong>
+                                    <strong>₹<?php echo number_format($grandTotal, 2); ?></strong>
                                 </div>
                                 
                                 <!-- Add this hidden field to track payment method -->
                                 <input type="hidden" name="payment_completed" id="payment_completed" value="0">
 
                                 <!-- Update your Place Order button -->
-                                <button type="button" id="place-order-btn" class="checkout-btn btn-block" onclick="goToPaymentConfirmation()">
+                                <button type="button" id="place-order-btn" class="checkout-btn btn-block" onclick="processPayment()">
                                     <i class="fas fa-lock mr-2"></i> PLACE ORDER
                                 </button>
                                 
@@ -638,7 +675,173 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
     </div>
 
     <!-- JavaScript with enhanced validation -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+     <body>
+    <!-- Load jQuery before your script -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Your custom script -->
+    <script>
+        $(document).ready(function() {
+            console.log("jQuery is loaded:", $.fn.jquery);
+
+            // Disable the Place Order button initially
+            $("#place-order-btn").prop('disabled', true);
+            
+            // Function to validate all required fields
+            function validateForm() {
+                let isValid = true;
+                
+                // Required fields validation
+                const requiredFields = [
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'address',
+                    'city',
+                    'zip'
+                ];
+                
+                requiredFields.forEach(field => {
+                    const value = $(`#${field}`).val().trim();
+                    if (!value) {
+                        isValid = false;
+                        showError(field, `${field.replace('_', ' ').toUpperCase()} is required`);
+                    }
+                });
+                
+                // Email validation
+                const email = $('#email').val().trim();
+                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    isValid = false;
+                    showError('email', 'Please enter a valid email address');
+                }
+                
+                // Terms and conditions validation
+                if (!$('#terms').is(':checked')) {
+                    isValid = false;
+                    showError('terms', 'You must agree to the terms and conditions');
+                }
+                
+                // Enable/disable Place Order button based on validation
+                $("#place-order-btn").prop('disabled', !isValid);
+                
+                return isValid;
+            }
+            
+            // Add event listeners for all form fields
+            $('input, select').on('change keyup', validateForm);
+            $('#terms').on('change', validateForm);
+            
+            // Modify the processPayment function
+            function processPayment() {
+                if (!validateForm()) {
+                    // Show error message
+                    alert('Please fill in all required fields and accept the terms and conditions.');
+                    
+                    // Scroll to the first error
+                    const firstError = $('.is-invalid').first();
+                    if (firstError.length) {
+                        $('html, body').animate({
+                            scrollTop: firstError.offset().top - 100
+                        }, 500);
+                    }
+                    return false;
+                }
+                
+                // Continue with payment processing
+                $("#place-order-btn").prop('disabled', true).text('Processing...');
+                
+                // Get form data
+                const formData = new FormData(document.getElementById('checkout-form'));
+                formData.append('amount', <?php echo $grandTotal; ?>);
+                
+                // Create order
+                $.ajax({
+                    url: 'create_order.php',
+                    method: 'POST',
+                    data: {
+                        amount: <?php echo $grandTotal; ?>,
+                        first_name: $('#first_name').val(),
+                        last_name: $('#last_name').val(),
+                        email: $('#email').val(),
+                        phone: $('#phone').val(),
+                        address: $('#address').val(),
+                        city: $('#city').val(),
+                        state: $('#state').val(),
+                        zip: $('#zip').val()
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            var options = {
+                                "key": "rzp_test_CzoNYGf1d0sXyX",
+                                "amount": response.amount,
+                                "currency": "INR",
+                                "name": "The Canine & Feline Co.",
+                                "description": "Pet Food Order Payment",
+                                "order_id": response.order_id,
+                                "handler": function (paymentResponse) {
+                                    // Verify payment
+                                    $.ajax({
+                                        url: 'verify_payment.php',
+                                        method: 'POST',
+                                        data: {
+                                            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                            razorpay_order_id: paymentResponse.razorpay_order_id,
+                                            razorpay_signature: paymentResponse.razorpay_signature,
+                                            database_order_id: response.database_order_id,
+                                            amount: response.amount
+                                        },
+                                        success: function(verificationResponse) {
+                                            if (verificationResponse.status === 'success') {
+                                                window.location.href = 'order_confirmation.php?order_id=' + response.database_order_id;
+                                            } else {
+                                                alert('Payment verification failed: ' + verificationResponse.message);
+                                                $("#place-order-btn").prop('disabled', false).text('Place Order');
+                                            }
+                                        },
+                                        error: function() {
+                                            alert('Payment verification failed. Please contact support.');
+                                            $("#place-order-btn").prop('disabled', false).text('Place Order');
+                                        }
+                                    });
+                                },
+                                "prefill": {
+                                    "name": $('#first_name').val() + ' ' + $('#last_name').val(),
+                                    "email": $('#email').val(),
+                                    "contact": $('#phone').val()
+                                },
+                                "theme": {
+                                    "color": "#00bd56"
+                                }
+                            };
+                            
+                            var rzp1 = new Razorpay(options);
+                            rzp1.open();
+                        } else {
+                            alert('Could not create order. Please try again.');
+                            $("#place-order-btn").prop('disabled', false).text('Place Order');
+                        }
+                    },
+                    error: function() {
+                        alert('Could not create order. Please try again.');
+                        $("#place-order-btn").prop('disabled', false).text('Place Order');
+                    }
+                });
+            }
+            
+            // Update the click handler for the place order button
+            $("#place-order-btn").click(function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    processPayment();
+                }
+            });
+        });
+    </script>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
@@ -1216,131 +1419,6 @@ $razorpay_order_id = 'ORD' . time(); // Generate a unique order ID
             field.next('.invalid-feedback').remove();
         }
     });
-    </script>
-    
-    <script>
-    // Payment processing function
-    function processPayment() {
-        // First validate all form fields
-        if (!validateCheckoutForm()) {
-            return false;
-        }
-        
-        // Get the selected payment method
-        const paymentMethod = $('input[name="payment_method"]:checked').val();
-        
-        if (paymentMethod === 'razorpay') {
-            // Process with Razorpay
-            initiateRazorpayPayment();
-        } else {
-            // For other payment methods (credit card, etc.)
-            // In a real application, you would process the payment here
-            // For now, just submit the form to confirm_payment.php
-            $('#payment_completed').val('1');
-            $('#checkout-form').submit();
-        }
-    }
-
-    // Razorpay payment function
-    function initiateRazorpayPayment() {
-        // Get customer information
-        const firstName = $('#first_name').val().trim();
-        const lastName = $('#last_name').val().trim();
-        const email = $('#email').val().trim();
-        const phone = $('#phone').val().trim();
-        
-        // Configure Razorpay options
-        const options = {
-            key: "<?php echo $razorpay_key_id; ?>", // Your Razorpay Key ID
-            amount: "<?php echo $razorpay_amount; ?>", // Amount in paise
-            currency: "<?php echo $razorpay_currency; ?>",
-            name: "The Canine & Feline Co.",
-            description: "Pet Food Order",
-            image: "https://your-store-logo-url.com/logo.png", // Replace with your logo URL
-            order_id: "<?php echo $razorpay_order_id; ?>", // From your server
-            handler: function (response) {
-                // On successful payment
-                console.log('Payment successful:', response);
-                
-                // Add the payment details to hidden form fields
-                $('#razorpay_payment_id').val(response.razorpay_payment_id);
-                $('#razorpay_order_id').val(response.razorpay_order_id);
-                $('#razorpay_signature').val(response.razorpay_signature);
-                $('#payment_completed').val('1');
-                
-                // Store checkout data in session (optional)
-                $.ajax({
-                    url: 'store_checkout_data.php',
-                    type: 'POST',
-                    data: $('#checkout-form').serialize(),
-                    async: false
-                });
-                
-                // Submit the form to confirm_payment.php
-                $('#checkout-form').submit();
-            },
-            prefill: {
-                name: firstName + ' ' + lastName,
-                email: email,
-                contact: phone
-            },
-            notes: {
-                address: $('#address').val() + ', ' + $('#city').val() + ', ' + $('#state').val() + ' ' + $('#zip').val()
-            },
-            theme: {
-                color: "#00bd56"
-            },
-            modal: {
-                ondismiss: function() {
-                    console.log('Payment canceled');
-                }
-            }
-        };
-        
-        // Create a new Razorpay instance and open payment modal
-        const rzp = new Razorpay(options);
-        rzp.open();
-        
-        return false;
-    }
-
-    // Form validation function (call your existing validation logic)
-    function validateCheckoutForm() {
-        // Your existing validation logic here
-        let isValid = true;
-        
-        // Check first name
-        const firstName = $('#first_name').val().trim();
-        if (!firstName) {
-            showError('first_name', 'First name is required');
-            isValid = false;
-        }
-        
-        // Check email
-        const email = $('#email').val().trim();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showError('email', 'Valid email is required');
-            isValid = false;
-        }
-        
-        // Check if a payment method is selected
-        if (!$('input[name="payment_method"]:checked').val()) {
-            showError('payment_method', 'Please select a payment method');
-            isValid = false;
-        }
-        
-        // If not valid, focus on the first error
-        if (!isValid) {
-            const firstError = $('.is-invalid').first();
-            if (firstError.length) {
-                $('html, body').animate({
-                    scrollTop: firstError.offset().top - 100
-                }, 500);
-            }
-        }
-        
-        return isValid;
-    }
     </script>
     
     <!-- Add these hidden fields to your form to capture Razorpay response -->

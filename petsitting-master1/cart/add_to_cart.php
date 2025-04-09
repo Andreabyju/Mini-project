@@ -140,7 +140,6 @@ if (!empty($_SESSION['cart'])) {
                 <div class="col-lg-8">
                     <?php foreach ($cartItems as $item): 
                         $itemTotal = $item['price'] * $_SESSION['cart'][$item['id']];
-                        $total += $itemTotal;
                     ?>
                         <div class="cart-item">
                             <div class="row align-items-center">
@@ -161,7 +160,7 @@ if (!empty($_SESSION['cart'])) {
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <span class="price">$<?php echo number_format($itemTotal, 2); ?></span>
+                                    <span class="price">₹<?php echo number_format($itemTotal, 2); ?></span>
                                 </div>
                                 <div class="col-md-1">
                                     <i class="fas fa-trash remove-btn" onclick="removeItem(<?php echo $item['id']; ?>)"></i>
@@ -176,7 +175,7 @@ if (!empty($_SESSION['cart'])) {
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Subtotal</span>
-                            <span>$<?php echo number_format($total, 2); ?></span>
+                            <span>₹<?php echo number_format($total, 2); ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Shipping</span>
@@ -185,7 +184,7 @@ if (!empty($_SESSION['cart'])) {
                         <hr>
                         <div class="d-flex justify-content-between mb-4">
                             <strong>Total</strong>
-                            <strong>$<?php echo number_format($total, 2); ?></strong>
+                            <strong>₹<?php echo number_format($total, 2); ?></strong>
                         </div>
                         <a href="checkout.php" class="btn checkout-btn">
                             <i class="fas fa-lock mr-2"></i> PROCEED TO CHECKOUT

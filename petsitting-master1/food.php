@@ -199,7 +199,7 @@ try {
                             <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                             <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
                             <div class="d-flex justify-content-between align-items-center mt-3">
-                                <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
+                                <span class="price">₹<?php echo number_format($product['price'], 2); ?></span>
                                 <button class="btn btn-primary add-to-cart-btn" 
                                         onclick="addToCart(<?php echo $product['id']; ?>)">
                                     <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
@@ -230,7 +230,7 @@ try {
                             <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                             <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
                             <div class="d-flex justify-content-between align-items-center mt-3">
-                                <span class="price">$<?php echo number_format($product['price'], 2); ?></span>
+                                <span class="price">₹<?php echo number_format($product['price'], 2); ?></span>
                                 <button class="btn btn-primary add-to-cart-btn" 
                                         onclick="addToCart(<?php echo $product['id']; ?>)">
                                     <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
@@ -285,6 +285,113 @@ function addToCart(productId) {
         console.error('Error:', error);
         alert('Error adding product to cart');
     });
+}
+
+// Search functionality
+function searchProducts(event) {
+    event.preventDefault();
+    const searchInput = document.getElementById('searchInput').value.trim();
+    
+    if (searchInput === '') {
+        alert('Please enter a search term');
+        return false;
+    }
+    
+    // Show loading state
+    const container = document.querySelector('.container.my-5');
+    container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-3x"></i><p class="mt-3">Searching...</p></div>';
+    
+    fetch(`search.php?query=${encodeURIComponent(searchInput)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Search response:', data); // For debugging
+            if (data.success) {
+                displaySearchResults(data.results, searchInput);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error searching for products');
+        });
+    
+    return false;
+}
+
+function displaySearchResults(results, searchQuery) {
+    const container = document.querySelector('.container.my-5');
+    
+    // Clear existing content
+    container.innerHTML = '';
+    
+    // Add search results title
+    const titleElement = document.createElement('h2');
+    titleElement.className = 'category-title';
+    titleElement.textContent = `Search Results for "${searchQuery}"`;
+    container.appendChild(titleElement);
+    
+    if (results.length === 0) {
+        const noResults = document.createElement('div');
+        noResults.className = 'text-center mt-4';
+        noResults.innerHTML = `
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="lead">No products found matching your search "${searchQuery}".</p>
+            <button class="btn btn-primary mt-3" onclick="window.location.reload()">
+                <i class="fas fa-arrow-left mr-2"></i>Back to All Products
+            </button>
+        `;
+        container.appendChild(noResults);
+        return;
+    }
+    
+    // Create row for products
+    const row = document.createElement('div');
+    row.className = 'row';
+    container.appendChild(row);
+    
+    // Add each product to the results
+    results.forEach(product => {
+        const productCol = document.createElement('div');
+        productCol.className = 'col-md-4 mb-4';
+        
+        productCol.innerHTML = `
+            <div class="product-card">
+                <img src="uploads/${product.image_url}" 
+                     alt="${product.name}" 
+                     class="product-image w-100">
+                <div class="card-body">
+                    <h5 class="card-title">${product.name}</h5>
+                    <p class="card-text">${product.description}</p>
+                    <p class="text-muted small">Category: ${product.category}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="price">₹${parseFloat(product.price).toFixed(2)}</span>
+                        <button class="btn btn-primary add-to-cart-btn" 
+                                onclick="addToCart(${product.id})">
+                            <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        row.appendChild(productCol);
+    });
+    
+    // Add a button to go back to all products
+    const backButtonContainer = document.createElement('div');
+    backButtonContainer.className = 'text-center mt-4';
+    backButtonContainer.innerHTML = `
+        <button class="btn btn-primary" onclick="window.location.reload()">
+            <i class="fas fa-arrow-left mr-2"></i>Back to All Products
+        </button>
+    `;
+    container.appendChild(backButtonContainer);
 }
 </script>
 

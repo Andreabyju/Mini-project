@@ -89,7 +89,7 @@ if (!isset($recentBookings)) {
         <div class="w-64 bg-white h-screen shadow-lg">
             <div class="p-4">
                 <div class="space-y-2">
-                    <a href="admin_dashboard.php" class="block p-3 rounded-lg bg-green-100 text-green-800 font-medium">
+                <a href="admin_dashboard.php" class="block p-3 rounded-lg bg-green-100 text-green-800 font-medium">
                         Dashboard
                     </a>
                     <a href="manage_users.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
@@ -101,15 +101,15 @@ if (!isset($recentBookings)) {
                     <a href="manage_categories.php" class="block p-3 rounded-lg bg-gray-100 text-gray-700 font-medium">
                         Manage Categories
                     </a>
-                    <a href="manage_bookings.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
-                        Manage Bookings
-                    </a>
+                   
                     <a href="manage_services.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
                         Manage Services
                     </a>
-                    <a href="reports.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
-                        View Reports
+                    <a href="manage_grooming.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
+                        Grooming Appointments
                     </a>
+                    
+                    
                 </div>
             </div>
         </div>

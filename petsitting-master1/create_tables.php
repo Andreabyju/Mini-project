@@ -61,13 +61,29 @@ $sql_categories = "CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 
+// Create Payments table
+$sql_payments = "CREATE TABLE IF NOT EXISTS payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    payment_amount DECIMAL(10,2) NOT NULL,
+    payment_status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    razorpay_payment_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id)
+)";
+
+// Add the ALTER TABLE statement after the table creation
+$sql_alter_payments = "ALTER TABLE payments CHANGE payment_amount price DECIMAL(10,2) NOT NULL";
+
 // Execute each table creation query and check for success
 $tables = array(
     'Users' => $sql_users,
     'Products' => $sql_products,
     'Orders' => $sql_orders,
     'Order Items' => $sql_order_items,
-    'Categories' => $sql_categories
+    'Categories' => $sql_categories,
+    'Payments' => $sql_payments,
+    'Alter Payments' => $sql_alter_payments
 );
 
 foreach($tables as $table_name => $sql) {

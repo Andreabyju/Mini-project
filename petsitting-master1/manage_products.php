@@ -125,15 +125,14 @@ $products = $conn->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
                     <a href="manage_categories.php" class="block p-3 rounded-lg bg-gray-100 text-gray-700 font-medium">
                         Manage Categories
                     </a>
-                    <a href="manage_bookings.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
-                        Manage Bookings
-                    </a>
+                    
                     <a href="manage_services.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
                         Manage Services
                     </a>
-                    <a href="reports.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
-                        View Reports
+                    <a href="manage_grooming.php" class="block p-3 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
+                        Grooming Appointments
                     </a>
+                    
                 </div>
             </div>
         </div>

@@ -27,6 +27,41 @@ session_start();
     <link rel="stylesheet" href="css/flaticon.css">
     <link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Profile icon styles */
+        .profile-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .profile-icon i {
+            font-size: 22px;
+            color: black;
+        }
+        
+        .profile-name {
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+            color: black;
+        }
+    </style>
   </head>
   <body>
 
@@ -41,28 +76,23 @@ session_start();
 			</button>
 			<div class="collapse navbar-collapse" id="ftco-nav">
 				<div class="navbar-nav ml-auto">
-					<div class="nav-item active"><a href="index.html" class="nav-link">Home</a></div>
-					<div class="nav-item"><a href="about.html" class="nav-link">About</a></div>
-					<div class="nav-item"><a href="services.html" class="nav-link">Services</a></div>
-					<div class="nav-item">
-					<a href="food.php" class="nav-link text-center">Food Products</a></div>
-					<div class="nav-item"><a href="pricing.html" class="nav-link">Pricing</a></div>
-					
-					<div class="nav-item ml-auto">
-						<a href="user_dashboard.php" class="nav-link d-flex align-items-center">
-							<i class="fa-solid fa-user fa-2x mr-2"></i> 
-							<span class="user-name">
+					<div class="nav-item d-flex align-items-center">
+						<a href="demo.php" class="nav-link mr-3">Log Out</a>
+						<a href="user_dashboard.php" class="profile-link">
+							<div class="profile-icon">
+								<i class="fas fa-user"></i>
+							</div>
+							<span class="profile-name">
 								<?php 
 									if(isset($_SESSION['username']) && !empty($_SESSION['username'])) {
 										echo htmlspecialchars($_SESSION['username']);
 									} else {
-										echo 'Guest';
+										echo 'Profile';
 									}
 								?>
 							</span>
 						</a>
 					</div>
-					<div class="nav-item"><a href="hhh.php" class="nav-link">Log Out</a></div>
 				</div>
 			</div>
 		</div>
@@ -128,8 +158,8 @@ session_start();
               </div>
               <div class="media-body">
                 <h3 class="heading">Pet Daycare</h3>
-                <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right.</p>
-                <a href="#" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
+                <p>We provide a safe, fun, and nurturing environment where your pets can thrive while you're away. Whether for a few hours or the whole day, your furry companions will receive top-notch care, socialization, and plenty of playtime.</p>
+                <a href="daycare_booking.php" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
               </div>
             </div>      
           </div>
@@ -140,7 +170,7 @@ session_start();
               </div>
               <div class="media-body">
                 <h3 class="heading">Pet Food</h3>
-                <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right.</p>
+                <p>We provide a wide range of nutritionally balanced and high-quality pet food for cats and dogs. Whether your furry companion prefers grain-free, high-protein, or breed-specific recipes, we've got you covered</p>
                 <a href="food.php" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
               </div>
             </div>    
@@ -152,8 +182,8 @@ session_start();
               </div>
               <div class="media-body">
                 <h3 class="heading">Pet Grooming</h3>
-                <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right.</p>
-                <a href="services.html" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
+                <p>We offer top-quality grooming and spa treatments designed to keep your furry companion looking, feeling, and smelling their best. Our skilled groomers provide gentle, stress-free care with personalized attention.</p>
+                <a href="grooming_booking.php" class="btn-custom d-flex align-items-center justify-content-center"><span class="fa fa-chevron-right"></span><i class="sr-only">Read more</i></a>
               </div>
             </div>      
           </div>
